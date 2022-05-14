@@ -7,6 +7,9 @@ gfx.setColor( gfx.kColorBlack )
 
 inverted = false
 local menu = playdate.getSystemMenu()
+local menuItem, error = menu:addMenuItem("Clear", function()
+	gfx.clear()
+end)
 local menuItem, error = menu:addMenuItem("Invert", function()
 	doInvert()
 end)
