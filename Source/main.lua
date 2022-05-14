@@ -5,6 +5,15 @@ local gfx = playdate.graphics
 gfx.setBackgroundColor( gfx.kColorWhite )
 gfx.setColor( gfx.kColorBlack )
 
+inverted = false
+local menu = playdate.getSystemMenu()
+local menuItem, error = menu:addMenuItem("Invert", function()
+	if inverted then inverted = false
+	elseif not inverted then inverted = true
+	end
+	playdate.display.setInverted(inverted)
+end)
+
 minX = 0
 maxX = 400
 minY = 0
