@@ -8,10 +8,7 @@ gfx.setColor( gfx.kColorBlack )
 inverted = false
 local menu = playdate.getSystemMenu()
 local menuItem, error = menu:addMenuItem("Invert", function()
-	if inverted then inverted = false
-	elseif not inverted then inverted = true
-	end
-	playdate.display.setInverted(inverted)
+	doInvert()
 end)
 
 minX = 0
@@ -36,6 +33,11 @@ function playdate.update()
 	local prevY = pointerY
 	local prevMode = mode
 
+	-- let B invert
+	if playdate.buttonIsPressed( playdate.kButtonB ) then
+		doInvert()
+	end
+
 	-- pointer draw size
 	if playdate.buttonIsPressed( playdate.kButtonUp ) then
 		pointerR += 1
@@ -46,6 +48,7 @@ function playdate.update()
 
 	-- pointer mode
 	if playdate.buttonJustPressed( playdate.kButtonLeft ) or
+	   playdate.buttonJustPressed( playdate.kButtonA ) or
 	   playdate.buttonJustPressed( playdate.kButtonRight ) then
 		if mode == MODE_HORIZONTAL then
 			mode = MODE_VERTICAL
@@ -118,4 +121,11 @@ function playdate.update()
 --	gfx.setColor( gfx.kColorWhite )
 --	gfx.fillCircleAtPoint( pointerX, pointerY, 1)
 --	gfx.setColor( gfx.kColorBlack )
+end
+
+function doInvert()
+	if inverted then inverted = false
+	elseif not inverted then inverted = true
+	end
+	playdate.display.setInverted(inverted)
 end
