@@ -1,4 +1,5 @@
 import 'CoreLibs/graphics.lua'
+import 'shaker.lua'
 
 local gfx = playdate.graphics
 
@@ -13,6 +14,12 @@ end)
 local menuItem, error = menu:addMenuItem("Invert", function()
 	doInvert()
 end)
+
+playdate.startAccelerometer()
+local shaker = Shaker.new(function()
+	gfx.clear()
+end, {})
+shaker:setEnabled(true)
 
 minX = 0
 maxX = 400
@@ -31,6 +38,8 @@ MODE_ARC = 2
 mode = MODE_HORIZONTAL
 
 function playdate.update()
+
+	shaker:update()
 
 	local prevX = pointerX
 	local prevY = pointerY
