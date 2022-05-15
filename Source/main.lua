@@ -1,4 +1,5 @@
 import 'CoreLibs/graphics.lua'
+import 'CoreLibs/ui'
 import 'shaker.lua'
 
 local gfx = playdate.graphics
@@ -37,10 +38,30 @@ MODE_VERTICAL = 1
 MODE_ARC = 2
 mode = MODE_HORIZONTAL
 
+showingCrankIndicator = false
+
 function playdate.update()
 
+	-- show the crank indicator if it's docked
+	local crankDocked = playdate.isCrankDocked()
+	if crankDocked and showingCrankIndicator then
+		playdate.timer.updateTimers()
+		playdate.ui.crankIndicator:update()
+		return
+	elseif crankDocked and not showingCrankIndicator then
+		saveImage()
+		playdate.ui.crankIndicator:start()
+		showingCrankIndicator = true
+		return
+	elseif not crankDocked and showingCrankIndicator then
+		loadImage()
+		showingCrankIndicator = false
+	end
+
+	-- test for shake gesture
 	shaker:update()
 
+	-- save some previous state
 	local prevX = pointerX
 	local prevY = pointerY
 	local prevMode = mode
@@ -133,6 +154,18 @@ function playdate.update()
 --	gfx.setColor( gfx.kColorWhite )
 --	gfx.fillCircleAtPoint( pointerX, pointerY, 1)
 --	gfx.setColor( gfx.kColorBlack )
+end
+
+function saveImage()
+	local image = gfx.getDisplayImage()
+	playdate.datastore.writeImage(image, "lastImage")
+end
+
+function loadImage()
+	local savedImage = playdate.datastore.readImage("lastImage")
+	if savedImage then
+		savedImage:draw(0,0)
+	end
 end
 
 function doInvert()
