@@ -22,6 +22,20 @@ local shaker = Shaker.new(function()
 end, {})
 shaker:setEnabled(true)
 
+function saveImage()
+	local image = gfx.getDisplayImage()
+	playdate.datastore.writeImage(image, "lastImage")
+end
+
+function loadImage()
+	local savedImage = playdate.datastore.readImage("lastImage")
+	if savedImage then
+		savedImage:draw(0,0)
+	end
+end
+
+loadImage()
+
 minX = 0
 maxX = 400
 minY = 0
@@ -156,16 +170,8 @@ function playdate.update()
 --	gfx.setColor( gfx.kColorBlack )
 end
 
-function saveImage()
-	local image = gfx.getDisplayImage()
-	playdate.datastore.writeImage(image, "lastImage")
-end
-
-function loadImage()
-	local savedImage = playdate.datastore.readImage("lastImage")
-	if savedImage then
-		savedImage:draw(0,0)
-	end
+function playdate.gameWillTerminate()
+	saveImage()
 end
 
 function doInvert()
