@@ -2,9 +2,30 @@ import 'CoreLibs/graphics.lua'
 import 'CoreLibs/ui'
 import 'shaker.lua'
 
+-- defining some global variables
+
+minX = 0
+maxX = 400
+minY = 0
+maxY = 240
+
+pointerX = maxX / 2
+pointerY = maxY / 2
+pointerR = 3
+
+MODE_HORIZONTAL = 0
+MODE_VERTICAL = 1
+MODE_ARC = 2
+mode = MODE_HORIZONTAL
+
+showingCrankIndicator = false
+firstUpdate = true
+
+-- local variables and functions
+
 local gfx = playdate.graphics
 
-gfx.setBackgroundColor( gfx.kColorWhite )
+gfx.clear( gfx.kColorWhite )
 gfx.setColor( gfx.kColorBlack )
 
 inverted = false
@@ -23,44 +44,47 @@ end, {})
 shaker:setEnabled(true)
 
 function saveImage()
+	if showingCrankIndicator then
+		return
+	end
 	local image = gfx.getDisplayImage()
-	playdate.datastore.writeImage(image, "lastImage")
+	playdate.datastore.writeImage(image, "images/lastImage")
 end
 
 function loadImage()
-	local savedImage = playdate.datastore.readImage("lastImage")
-	if savedImage then
-		savedImage:draw(0,0)
+	if playdate.file.exists("images/lastImage") then
+		gfx.clear( gfx.kColorWhite )
+		local savedImage = playdate.datastore.readImage("images/lastImage")
+		if savedImage then
+			savedImage:draw(0,0)
+		end
+	else
+		-- here we are probably in a first-run scenario
+		gfx.clear( gfx.kColorWhite )
 	end
 end
 
-loadImage()
+function save()
+	saveImage()
+	playdate.datastore.write({pointerX, pointerY})
+end
 
-minX = 0
-maxX = 400
-minY = 0
-maxY = 240
-
-pointerX = maxX / 2
-pointerY = maxY / 2
-pointerR = 3
-velX = 2
-velY = 2
-
-MODE_HORIZONTAL = 0
-MODE_VERTICAL = 1
-MODE_ARC = 2
-mode = MODE_HORIZONTAL
-
-showingCrankIndicator = false
+function load()
+	loadImage()
+	local table = playdate.datastore.read()
+	if table then
+		pointerX = table[1]
+		pointerY = table[2]
+	end
+end
 
 function playdate.update()
 
 	-- show the crank indicator if it's docked
 	local crankDocked = playdate.isCrankDocked()
 	if crankDocked and showingCrankIndicator then
-		playdate.timer.updateTimers()
 		playdate.ui.crankIndicator:update()
+		playdate.timer.updateTimers()
 		return
 	elseif crankDocked and not showingCrankIndicator then
 		saveImage()
@@ -68,9 +92,18 @@ function playdate.update()
 		showingCrankIndicator = true
 		return
 	elseif not crankDocked and showingCrankIndicator then
-		loadImage()
+		if firstUpdate then
+			-- this definitely sucks if the user has a saved image,
+			-- but it's better than before, when the screen would just be
+			-- black in this case. (completely broken.)
+			gfx.clear( gfx.kColorWhite )
+		else
+			loadImage()
+		end
 		showingCrankIndicator = false
+		return
 	end
+	firstUpdate = false
 
 	-- test for shake gesture
 	shaker:update()
@@ -81,7 +114,7 @@ function playdate.update()
 	local prevMode = mode
 
 	-- let B invert
-	if playdate.buttonIsPressed( playdate.kButtonB ) then
+	if playdate.buttonJustPressed( playdate.kButtonB ) then
 		doInvert()
 	end
 
@@ -121,7 +154,6 @@ function playdate.update()
 			--print(change, angle)
 			--x,y = degreesToCoords(angle)
 		end
-
 	end
 
 	if ( pointerX > maxX ) then
@@ -137,7 +169,6 @@ function playdate.update()
 	end
 
 	-- Drawing
---	gfx.clear( gfx.kColorWhite )
 	gfx.setColor( gfx.kColorBlack )
 
 	-- overdraw previous direction indicator
@@ -163,15 +194,10 @@ function playdate.update()
 	elseif mode == MODE_VERTICAL then
 		gfx.drawLine(pointerX, pointerY-1, pointerX, pointerY+1)
 	end
-
-	-- draw a single white pixel at cursor point
---	gfx.setColor( gfx.kColorWhite )
---	gfx.fillCircleAtPoint( pointerX, pointerY, 1)
---	gfx.setColor( gfx.kColorBlack )
 end
 
 function playdate.gameWillTerminate()
-	saveImage()
+	save()
 end
 
 function doInvert()
@@ -180,3 +206,5 @@ function doInvert()
 	end
 	playdate.display.setInverted(inverted)
 end
+
+load()

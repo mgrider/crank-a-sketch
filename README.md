@@ -18,6 +18,10 @@ Crank-a-sketch was created by Martin Grider.
 
 ## Changelog
 
+- 1.4 - fixed some bugs with save and restore, added saving of pointer position
+
+    Known issue: Unfortunately, I can't manage to restore state if the crank is docked when the application starts.
+
 - 1.3 - added a crank indicator, and saves the image when you quit to the home screen
 - 1.2 - added shake to clear
 - 1.1 - added clear in the settings menu
