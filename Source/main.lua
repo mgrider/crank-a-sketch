@@ -1,4 +1,5 @@
 import 'CoreLibs/graphics.lua'
+--import "CoreLibs/qrcode"
 import 'CoreLibs/ui'
 import 'shaker.lua'
 
@@ -37,11 +38,29 @@ local menuItem, error = menu:addMenuItem("Invert", function()
 	doInvert()
 end)
 
+function doInvert()
+	inverted = not inverted
+	playdate.display.setInverted(inverted)
+end
+
 playdate.startAccelerometer()
 local shaker = Shaker.new(function()
 	gfx.clear()
 end, {})
 shaker:setEnabled(true)
+
+local qrImage = gfx.image.new("Images/github.qr.png")
+local generatingQR = false
+--local qrCallback = function(image, errorMessage)
+--	if errorMessage == nil then
+--		playdate.simulator.writeToFile(image, "~/Developer/github.qr.png")
+--		qrImage = image
+--		generatingQR = false
+--	end
+--end
+--gfx.generateQRCode("https://github.com/mgrider/crank-a-sketch", 100, qrCallback)
+
+-- saving/loading functions
 
 function saveImage()
 	if showingCrankIndicator then
@@ -78,7 +97,14 @@ function load()
 	end
 end
 
+
+-- update function
+
 function playdate.update()
+
+	if generatingQR then
+		playdate.timer.updateTimers()
+	end
 
 	-- show the crank indicator if it's docked
 	local crankDocked = playdate.isCrankDocked()
@@ -196,15 +222,32 @@ function playdate.update()
 	end
 end
 
+
+-- sdk callbacks
+
 function playdate.gameWillTerminate()
 	save()
 end
 
-function doInvert()
-	if inverted then inverted = false
-	elseif not inverted then inverted = true
+function playdate.gameWillPause()
+	local img = gfx.getDisplayImage()
+
+	gfx.lockFocus(img)
+	local bgRect = playdate.geometry.rect.new(20, 20, 160, 200)
+	local textRect = playdate.geometry.rect.new(30, 30, 140, 180)
+	gfx.setColor(gfx.kColorWhite)
+	gfx.fillRoundRect(bgRect, 10)
+	gfx.setColor(gfx.kColorBlack)
+	gfx.drawRoundRect(bgRect, 10)
+	local text = " Crank-A-Sketch \n\n by Martin Grider"
+	gfx.drawTextInRect(text, textRect, 0, "...", kTextAlignment.center)
+
+	if qrImage ~= nil and not generatingQR then
+		qrImage:drawCentered(20+80, 20+130)
 	end
-	playdate.display.setInverted(inverted)
+
+	gfx.unlockFocus()
+	playdate.setMenuImage(img, 0)
 end
 
 load()

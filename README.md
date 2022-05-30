@@ -12,12 +12,15 @@ Erase, or clear the screen by **shaking** the Playdate, or selecting "**Clear**"
 
 Use the screenshot feature in the system menu to save your drawing. (See the help article for [how to get at your playdate screenshots](https://help.play.date/games/screenshots/).)
 
+
 ## About
 
-Crank-a-sketch was created by Martin Grider.
+Crank-a-sketch was created by [Martin Grider](http://chesstris.com/).
+
 
 ## Changelog
 
+- 1.5 - added some info to the left of the system menu, including QR code to open the GitHub project
 - 1.4 - fixed some bugs with save and restore, added saving of pointer position
 
     Known issue: Unfortunately, I can't manage to restore state if the crank is docked when the application starts.
